@@ -99,6 +99,11 @@ def attempt(total_c, number_c, cost):
 # '''
 
 
+### Example Input:
+### 6
+# 1440
+# 360 850 630 70 700 210
+
 number_of_items = int(input())
 max_bin_volume = float(input())
 
