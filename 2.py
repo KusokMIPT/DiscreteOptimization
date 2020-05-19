@@ -51,3 +51,4 @@ def reading_input():
 
 minimum_vertex_cover = MinimumVertexCover(*reading_input())
 print(" ".join(map(str, minimum_vertex_cover.solve())))
+

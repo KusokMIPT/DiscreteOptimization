@@ -6,6 +6,7 @@ import sys
 
 from scipy.optimize import linprog
 
+
 class Knapsack_solution(object):
     def __init__(self, knapsack_volume, items_num, volume_list, value_list):
         self.knapsack_volume = knapsack_volume

@@ -1,6 +1,7 @@
 import random
 from math import sqrt
 
+
 ############# not working #############
 
 def reading():
@@ -97,5 +98,6 @@ def solve_tsp_nearest_insertion(instance):
         permutation = permutation[0:split_place + 1] + \
                       [new_vertex] + permutation[split_place + 1:i + 2]
     return permutation
+
 
 print(solve_tsp_nearest_insertion(reading()))

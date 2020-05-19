@@ -1,153 +1,128 @@
-import numpy as np
+import itertools
+import datetime
+import math
+from collections import OrderedDict
 
 
-def greed_solution(total_1, number_1):  # return lower bound
-    if number_1 == number_of_items:
-        return 0
-    vol = 0
-    for i in range(number_1, number_of_items):
-        vol += items_size[i]
-        if vol > total_1:
-            vol -= items_size[i]
-    return float(vol)
-
-
-def like_lp_solution(total_3, number_3):
-    if number_3 == number_of_items:
-        return 0
-    vol = 0
-    price = 0
-    for i in range(number_3, number_of_items):
-        vol += items_size[i]
-        if vol <= total_3:
-            price += items_size[i]
-        else:
-            vol -= items_size[i]
-            price += total_3 - vol
-            break
-    return float(price)
-
-
-def attempt(total_c, number_c, cost):
-    r = [0 for i in range(number_of_items - number_c)]
-    numc = number_c
-    global Min
-    ch = 1
-    var_xi = 0
-    while ch == 1:
-        while number_c != number_of_items and items_size[number_c] > total_c:
-            number_c += 1
-        if number_c == number_of_items:
-            return cost, r
-
-        lp = like_lp_solution(total_c, number_c + 1)
-        if Min > cost + lp:
-            total_c -= items_size[number_c]
-            cost = max_bin_volume - total_c
-            r[number_c - numc] = 1
-            number_c += 1
-            continue
-        greedy_solution = greed_solution(total_c, number_c)
-
-        Min = min(Min, greedy_solution + cost)
-        ch = 1 if greedy_solution + cost >= lp else 0
-        if ch:
-            total_c -= items_size[number_c]
-            cost = max_bin_volume - total_c
-            r[number_c - numc] = 1
-            number_c += 1
-        else:
-            var_xi, r_c = attempt(total_c - items_size[number_c], number_c + 1, cost + items_size[number_c])
-            if var_xi > Min:
-                Min = var_xi
-            if float(var_xi) >= cost + lp:
-                r[number_c - numc] = 1
-                for i in range(len(r_c)):
-                    r[len(r) - len(r_c) + i] = r_c[i]
-                return var_xi, r
-            else:
-                greedy_solution = greed_solution(total_c, number_c + 1)
-                if Min < greedy_solution + cost:
-                    Min = greedy_solution + cost
-                    number_c += 1
-                    ch = 1
-    if number_c == number_of_items:
-        return cost
-    var_not_xi, r_nc = attempt(total_c, number_c + 1, cost)
-    if Min < var_not_xi:
-        Min = var_not_xi
-    if var_not_xi < var_xi:
-        r[number_c - numc] = 1
-        for i in range(len(r_c)):
-            r[len(r) - len(r_c) + i] = r_c[i]
-        return var_xi, r
-    else:
-        for i in range(len(r_nc)):
-            r[len(r) - len(r_nc) + i] = r_nc[i]
-        return var_not_xi, r
-
-
-# '''
-#       _____ READING FORMAT: _____
-#
-# In the BPP format:
-# Number of items (n)
-# Capacity of the bins (c)
-# For each item j (j = 1,...,n):
-# Weight (wj)
-#
-# '''
-
-
-### Example Input:
-### 6
-# 1440
-# 360 850 630 70 700 210
-
-number_of_items = int(input())
-max_bin_volume = float(input())
-
-items_size = [float(i) for i in input().split()]
-
-Bin_stability = []  # чтобы сохранить устойчивость перебора, тк Bin сортируется и attempt выдает ответ для Bin
-for i in range(number_of_items):
-    Bin_stability.append(items_size[i])
-
-items_size.sort(key=lambda x: -x)
-items_size_copy = []
-
-for i in range(number_of_items):
-    items_size_copy.append(items_size[i])
-
-items_size = np.asarray(items_size)
-ri = [0 for i in range(0, number_of_items)]
-ri_sability = [0 for i in range(number_of_items)]
-
-bin_number = 0  # number of bin
-
-while number_of_items != 0:
-    Bin_at = []
-    var, r_at = attempt(max_bin_volume, 0, 0)
-    count_0 = 0
-    j = 0
-    ii = 0
+def read_input():
+    number_of_items = int(input())
+    max_bin_volume = int(input())
+    items = []
     for i in range(number_of_items):
-        if r_at[i] != 0:
-            while j != count_0:
-                if ri[ii] == 0:
-                    j += 1
-                ii += 1
-            while ri[ii] != 0:
-                ii += 1
-            ri[ii] = 1 + bin_number
-        else:
-            count_0 += 1
-            Bin_at.append(items_size[i])
-    bin_number += 1
-    items_size = Bin_at
-    number_of_items = len(items_size)
-for i in range(len(ri)):
-    ri_sability[Bin_stability.index(items_size_copy[i])] = ri[i]
-    Bin_stability[Bin_stability.index(items_size_copy[i])] = 0
-for i in range(len(ri_sability)):
-    print(ri_sability[i], end=" ")
+        items.append(int(input()))
+
+    return max_bin_volume, items
+
+
+class Bin:
+    max_volume = -1
+
+    def __init__(self):
+        self.max_volume = Bin.max_volume
+        self.list = []
+        self.total_volume = 0
+
+    def add_item(self, item):
+        self.list.append(item)
+        self.total_volume += item
+
+    def check(self, item):
+        return self.total_volume + item < self.max_volume
+
+    def out(self):
+        return self.list
+
+    def pop(self):
+        self.total_volume -= self.list[-1]
+        del (self.list[-1])
+
+    def __str__(self):
+        return str(self.list)
+
+
+def ans_getting(list_items, list_bins):
+    pre_ans = {}
+    for num_, bin in enumerate(list_bins):
+        for things in bin.out():
+            pre_ans[things] = num_
+
+    ans = []
+    for things in list_items:
+        ans.append(pre_ans[things] + 1)
+
+    return ans
+
+
+class BinPackingSolver():
+    def __init__(self, max_bin_volume, items):
+        self.n = len(items)
+        self.items = items
+        Bin.max_volume = max_bin_volume
+
+        self.bins = [Bin()]
+
+    def solve(self):
+        ' рекурсия по эелментам (k_element - индекс элемента, curBin - количество бина) '
+
+        ans = []
+        min_n_bins = math.ceil(sum(self.items) / Bin.max_volume)
+        cur_min_n_bins = self.n
+
+        def full_search(k_element: int):
+            nonlocal ans, cur_min_n_bins
+
+            if len(self.bins) > min_n_bins:
+                return
+
+            if cur_min_n_bins > min_n_bins:
+                return
+
+            if k_element == self.n - 1:
+                ind_for_put_k_element = -1
+
+                for i in range(len(self.bins)):
+                    if self.bins[i].check(self.items[k_element]):
+                        ind_for_put_k_element = i
+
+                if ind_for_put_k_element > 0:
+                    self.bins[ind_for_put_k_element].add_item(self.items[k_element])
+
+                    if len(self.bins) < cur_min_n_bins:
+                        ans = ans_getting(self.items, self.bins)
+                        cur_min_n_bins = len(self.bins)
+
+                    self.bins[ind_for_put_k_element].pop()
+                else:
+                    self.bins.append(Bin())
+                    self.bins[-1].add_item(self.items[k_element])
+
+                    if len(self.bins) < cur_min_n_bins:
+                        ans = ans_getting(self.items, self.bins)
+                        cur_min_n_bins = len(self.bins)
+
+                    del (self.bins[-1])
+                return
+
+            for cur_bin in self.bins:
+                if cur_bin.check(self.items[k_element]):
+                    cur_bin.add_item(self.items[k_element])
+                    full_search(k_element + 1)
+                    cur_bin.pop()
+
+            self.bins.append(Bin())
+            self.bins[-1].add_item(self.items[k_element])
+            full_search(k_element + 1)
+            self.bins[-1].pop()
+            del self.bins[-1]
+
+            return
+
+        full_search(0)
+
+        return ans
+
+
+solver = BinPackingSolver(*read_input())
+ans = solver.solve()
+for i in ans:
+    print(i, end=" ")

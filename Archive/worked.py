@@ -1,4 +1,24 @@
-from typing import List, Tuple
+# 3d 2nd capitain mipt
+from tqdm import tqdm
+import datetime
+
+
+def read_dots():
+    with open('data/data2.txt') as file:
+        line = (file.readline()).split()
+        n = int(line[0])
+        price = int(line[1])
+        k, M = int(line[2]), int(line[3])
+
+        coordinates = [(0, 0)] * n
+        money = [0] * n
+        for i in range(n):
+            line = file.readline()
+            tokens = line.split()
+            coordinates[i] = (int(tokens[0]), int(tokens[1]))
+            money[i] = int(tokens[2])
+    file.close()
+    return n, price, k, M, coordinates, money
 
 
 def euclidean_distance(point1, point2, price, money):
@@ -11,7 +31,7 @@ def replacement_loss(new, u, v, price, money):
            euclidean_distance(u, v, price, money)
 
 
-def solve_tsp_nearest_insertion(instance: List[Tuple[int, int]], price:int, money: List[int]):
+def solve_tsp_nearest_insertion(instance, price, money):
     permutation = []
     not_used = set(range(len(instance)))
 
@@ -23,12 +43,11 @@ def solve_tsp_nearest_insertion(instance: List[Tuple[int, int]], price:int, mone
             begin = 0
             end = v
             min_distance = new_distance
-
     permutation.extend([begin, end])
     not_used.remove(begin)
     not_used.remove(end)
 
-    for i in range(len(instance) - 2):
+    for i in tqdm(range(len(instance) - 2)):
         new_vertex = -1
         min_distance = -1
 
@@ -51,52 +70,55 @@ def solve_tsp_nearest_insertion(instance: List[Tuple[int, int]], price:int, mone
                 split_place = j
                 min_distance = new_distance
 
-        permutation = permutation[0 : split_place + 1] + \
-                      [new_vertex] + permutation[split_place + 1: i + 2]
+        permutation = permutation[0:split_place + 1] + \
+                      [new_vertex] + permutation[split_place + 1:i + 2]
     return permutation
-
-
-class TspSolver:
-    def __init__(self):
-        pass
-
-
-def read_dots():
-    with open('Condition/data1.txt') as file:
-        line = (file.readline()).split()
-        n = int(line[0])
-        price = int(line[1])
-        k, M = int(line[2]), int(line[3])
-
-        coordinates = [(0, 0)] * n
-        money = [0] * n
-        for i in range(n):
-            line = file.readline()
-            tokens = line.split()
-            coordinates[i] = (int(tokens[0]), int(tokens[1]))
-            money[i] = int(tokens[2])
-    file.close()
-    return n, price, k, M, coordinates, money
-
-
-def reading_input():
-    knapsack_volume = int(input())
-    items_num = int(input())
-
-    volume_list = []
-    value_list = []
-    for i in range(items_num):
-        x, y = map(int, input().split())
-        volume_list.append(x)
-        value_list.append(y)
 
 
 instance = read_dots()
 n, price, k, M, instance, money = read_dots()
+
 solution = solve_tsp_nearest_insertion(instance, price, money)
 for i in range(len(solution)):
     solution[i] += 1
 solution.append(1)
 res = ' '.join(list(map(str, solution)))
 
-print(res)
+with open('data/ans.txt', 'w') as file:
+    file.write(res)
+
+############ FIRST CAPTAIN MIPT ###############
+# window = []
+# mo = 0
+# res = []
+# for i in solution:
+#     if len(window) >= k:
+#         mo = 0
+#         for el in window:
+#             mo += money[el-1]
+#         print('mo1=', mo)
+#         if mo > M:
+#             print('win1=', window)
+#             del window[len(window)-1]
+#         else:
+#             res.append(window[0])
+#             del window[0]
+#     else:
+#         mo = 0
+#         for el in window:
+#             mo += money[el-1]
+#         print('mo2=', mo)
+#         if mo > M:
+#             print('win2=', window)
+#             del window[len(window)-1]
+#         else:
+#             window.append(i)
+#             print('win3=', window)
+#
+
+
+# print(len(res))
+# print('---------------------------')
+# res = ' '.join(list(map(str, res)))
+#
+# print(res)
